@@ -8,6 +8,7 @@ import study.dto.MemberDTO;
 import study.entity.Member;
 import study.entity.Team;
 
+import java.util.Arrays;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -144,5 +145,22 @@ public class MemberRepositoryTest {
         assertThat(result.get(0).getUsername()).isEqualTo("AAA");
         assertThat(result.get(0).getTeamName()).isEqualTo("teamA");
         assertThat(result.get(0).getId()).isEqualTo(1);
+    }
+
+    @Test
+    void findByNames() {
+        Member member1 = new Member("AAA", 10);
+        Member member2 = new Member("BBB", 20);
+
+        memberRepository.save(member1);
+        memberRepository.save(member2);
+
+        List<Member> result = memberRepository.findByNames(Arrays.asList("AAA", "BBB"));
+
+        for (Member member : result) {
+            System.out.println("member = " + member);
+        }
+
+        assertThat(result.size()).isEqualTo(2);
     }
 }
