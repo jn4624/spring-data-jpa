@@ -3,6 +3,10 @@ package study.repository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort;
 import org.springframework.transaction.annotation.Transactional;
 import study.dto.MemberDTO;
 import study.entity.Member;
@@ -185,5 +189,99 @@ public class MemberRepositoryTest {
         assertThat(findListMember.size()).isEqualTo(1);
         assertThat(findMember).isNotNull();
         assertThat(findOptionalMember).isNotNull();
+    }
+
+    @Test
+    void page() {
+        // given
+        memberRepository.save(new Member("member1", 10));
+        memberRepository.save(new Member("member2", 10));
+        memberRepository.save(new Member("member3", 10));
+        memberRepository.save(new Member("member4", 10));
+        memberRepository.save(new Member("member5", 10));
+
+        // when
+        PageRequest pageRequest = PageRequest
+                .of(0, 3, Sort.by(Sort.Direction.DESC, "username"));
+        Page<Member> page = memberRepository.findPageByAge(10, pageRequest);
+
+        // 페이지 계산 공식 적용 부분
+
+        // then
+        List<Member> content = page.getContent(); // 조회된 데이터
+        long totalElements = page.getTotalElements();
+
+        for (Member member : content) {
+            System.out.println("member = " + member);
+        }
+
+        System.out.println("totalElements = " + totalElements);
+
+        assertThat(content.size()).isEqualTo(3); // 조회된 데이터 수
+        assertThat(page.getTotalElements()).isEqualTo(5); // 전체 데이터 수
+        assertThat(page.getNumber()).isEqualTo(0); // 페이지 번호
+        assertThat(page.getTotalPages()).isEqualTo(2); // 전체 페이지 번호
+        assertThat(page.isFirst()).isTrue(); // 첫번째 항목인가?
+        assertThat(page.hasNext()).isTrue(); // 다음 페이지가 있는가?
+    }
+
+    @Test
+    void slice() {
+        // given
+        memberRepository.save(new Member("member1", 10));
+        memberRepository.save(new Member("member2", 10));
+        memberRepository.save(new Member("member3", 10));
+        memberRepository.save(new Member("member4", 10));
+        memberRepository.save(new Member("member5", 10));
+
+        // when
+        PageRequest pageRequest = PageRequest.of(0, 3, Sort.by(Sort.Direction.DESC, "username"));
+        Slice<Member> page = memberRepository.findSliceByAge(10, pageRequest);
+
+        // 페이지 계산 공식 적용 부분
+
+        // then
+        List<Member> content = page.getContent(); // 조회된 데이터
+
+        for (Member member : content) {
+            System.out.println("member = " + member);
+        }
+
+        assertThat(content.size()).isEqualTo(3); // 조회된 데이터 수
+        assertThat(page.getNumber()).isEqualTo(0); // 페이지 번호
+        assertThat(page.isFirst()).isTrue(); // 첫번째 항목인가?
+        assertThat(page.hasNext()).isTrue(); // 다음 페이지가 있는가?
+    }
+
+    @Test
+    void countQuery() {
+        // given
+        memberRepository.save(new Member("member1", 10));
+        memberRepository.save(new Member("member2", 10));
+        memberRepository.save(new Member("member3", 10));
+        memberRepository.save(new Member("member4", 10));
+        memberRepository.save(new Member("member5", 10));
+
+        // when
+        PageRequest pageRequest = PageRequest.of(0, 3, Sort.by(Sort.Direction.DESC, "username"));
+
+        Page<Member> members = memberRepository.findMemberAllCountBy(pageRequest);
+    }
+
+    @Test
+    void entityToDto() {
+        // given
+        memberRepository.save(new Member("member1", 10));
+        memberRepository.save(new Member("member2", 10));
+        memberRepository.save(new Member("member3", 10));
+        memberRepository.save(new Member("member4", 10));
+        memberRepository.save(new Member("member5", 10));
+
+        // when
+        PageRequest pageRequest = PageRequest.of(0, 3, Sort.by(Sort.Direction.DESC, "username"));
+        Page<Member> members = memberRepository.findMemberAllCountBy(pageRequest);
+        Page<MemberDTO> map = members.map(m -> new MemberDTO(m.getId(), m.getUsername(), null));
+
+        System.out.println(map.getContent());
     }
 }
