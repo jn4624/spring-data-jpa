@@ -327,4 +327,82 @@ public class MemberRepositoryTest {
         assertThat(resultCount).isEqualTo(3);
         assertThat(member5.getAge()).isEqualTo(41);
     }
+
+    @Test
+    void findMemberLazy() {
+        // given
+        // member1 -> teamA
+        // member2 -> teamB
+        Team teamA = new Team("teamA");
+        Team teamB = new Team("teamB");
+
+        teamRepository.save(teamA);
+        teamRepository.save(teamB);
+
+        memberRepository.save(new Member("member1", 10, teamA));
+        memberRepository.save(new Member("member2", 20, teamB));
+
+        entityManager.flush();
+        entityManager.clear();
+
+        // when
+        List<Member> members = memberRepository.findAll();
+
+        // then
+        for (Member member : members) {
+            member.getTeam().getName();
+        }
+    }
+
+    @Test
+    void findMemberFetchJoin() {
+        // given
+        // member1 -> teamA
+        // member2 -> teamB
+        Team teamA = new Team("teamA");
+        Team teamB = new Team("teamB");
+
+        teamRepository.save(teamA);
+        teamRepository.save(teamB);
+
+        memberRepository.save(new Member("member1", 10, teamA));
+        memberRepository.save(new Member("member2", 20, teamB));
+
+        entityManager.flush();
+        entityManager.clear();
+
+        // when
+        List<Member> members = memberRepository.findMemberFetchJoin();
+
+        // then
+        for (Member member : members) {
+            member.getTeam().getName();
+        }
+    }
+
+    @Test
+    void findEntityGraphByUsername() {
+        // given
+        // member1 -> teamA
+        // member2 -> teamB
+        Team teamA = new Team("teamA");
+        Team teamB = new Team("teamB");
+
+        teamRepository.save(teamA);
+        teamRepository.save(teamB);
+
+        memberRepository.save(new Member("member1", 10, teamA));
+        memberRepository.save(new Member("member2", 20, teamB));
+
+        entityManager.flush();
+        entityManager.clear();
+
+        // when
+        List<Member> members = memberRepository.findEntityGraphByUsername("member1");
+
+        // then
+        for (Member member : members) {
+            member.getTeam().getName();
+        }
+    }
 }
