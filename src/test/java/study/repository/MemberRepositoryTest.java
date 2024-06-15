@@ -1,5 +1,7 @@
 package study.repository;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -26,6 +28,9 @@ public class MemberRepositoryTest {
 
     @Autowired
     TeamRepository teamRepository;
+
+    @PersistenceContext
+    EntityManager entityManager;
 
     @Test
     void testMember() {
@@ -283,5 +288,43 @@ public class MemberRepositoryTest {
         Page<MemberDTO> map = members.map(m -> new MemberDTO(m.getId(), m.getUsername(), null));
 
         System.out.println(map.getContent());
+    }
+
+    @Test
+    void bulkUpdate() {
+        // given
+        memberRepository.save(new Member("member1", 10));
+        memberRepository.save(new Member("member2", 19));
+        memberRepository.save(new Member("member3", 20));
+        memberRepository.save(new Member("member4", 21));
+        memberRepository.save(new Member("member5", 40));
+
+        // when
+        /**
+         * 벌크 연산은 영속성 컨텍스트를 무시하고
+         * 데이터베이스에 바로 반영을 실행하기 때문에
+         * 영속성 컨텍스트에 있는 엔티티와 데이터베이스간의 데이터가 달라진다.
+         *
+         * 벌크 연산 사용의 권장 방안은
+         * 1. 영속성 컨텍스트에 엔티티가 없는 상태에서 벌크 연산을 먼저 실행한다.
+         * 2. 부득이하게 영속성 컨텍스트에 엔티티가 존재하면 벌크 연산 직후 영속성 컨텍스트를 초기화한다.
+         */
+        int resultCount = memberRepository.bulkAgePlus(20);
+
+        // 영속성 컨텍스트 초기화
+        /**
+         * Spring Data JPA 는
+         * EntityManager 로 초기화를 할 수도 있지만
+         * @Modifiying 의 clearAutomatically 옵션으로도 초기화를 지정할 수 있다.
+         */
+//        entityManager.flush();
+//        entityManager.clear();
+
+        List<Member> members = memberRepository.findByUsername("member5");
+        Member member5 = members.get(0);
+
+        // then
+        assertThat(resultCount).isEqualTo(3);
+        assertThat(member5.getAge()).isEqualTo(41);
     }
 }
