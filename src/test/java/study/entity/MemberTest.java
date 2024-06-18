@@ -3,8 +3,10 @@ package study.entity;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
+import study.repository.MemberRepository;
 
 import java.util.List;
 
@@ -13,6 +15,9 @@ import java.util.List;
 class MemberTest {
     @PersistenceContext
     EntityManager entityManager;
+
+    @Autowired
+    MemberRepository memberRepository;
 
     @Test
     void testEntity() {
@@ -44,5 +49,25 @@ class MemberTest {
             System.out.println("member = " + member);
             System.out.println("-> member.team = " + member.getTeam());
         }
+    }
+
+    @Test
+    void jpaEventBaseEntity() throws Exception {
+        // given
+        Member member = new Member("member1");
+        memberRepository.save(member);
+
+        Thread.sleep(100);
+        member.setUsername("member2");
+
+        entityManager.flush();
+        entityManager.clear();
+
+        // when
+        Member findMember = memberRepository.findById(member.getId()).get();
+
+        // then
+        System.out.println("findMember.createdDate = " + findMember.getCreatedDate());
+        System.out.println("findMember.updatedDate = " + findMember.getUpdatedDate());
     }
 }
