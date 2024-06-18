@@ -2,9 +2,14 @@ package study.controller;
 
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
+import study.dto.MemberDTO;
 import study.entity.Member;
 import study.repository.MemberRepository;
 
@@ -30,8 +35,39 @@ public class MemberController {
         return member.getUsername();
     }
 
+    /**
+     * ex:
+     * http://localhost:8080/members?page=0&size=3&sort=id,desc&sort=createdDate,asc
+     */
+    @GetMapping("/members")
+    public Page<Member> list(Pageable pageable) {
+        return memberRepository.findAll(pageable);
+    }
+
+    /**
+     * 페이징과 정렬 개별 설정
+     * 글로벌 설정보다 우선 순위가 높다.
+     */
+    @GetMapping("/members/default")
+    public Page<Member> listDefault(@PageableDefault(
+            size = 12,
+            sort = "username",
+            direction = Sort.Direction.DESC) Pageable pageable) {
+        return memberRepository.findAll(pageable);
+    }
+
+    /**
+     * Page To DTO
+     */
+    @GetMapping("/members/dto")
+    public Page<MemberDTO> listDto(Pageable pageable) {
+        return memberRepository.findAll(pageable).map(MemberDTO::new);
+    }
+
     @PostConstruct
     public void init() {
-        memberRepository.save(new Member("userA"));
+        for (int i = 0; i < 100; i++) {
+            memberRepository.save(new Member("user" + i, i));
+        }
     }
 }

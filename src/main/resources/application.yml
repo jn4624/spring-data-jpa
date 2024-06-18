@@ -2,6 +2,7 @@ spring:
   application:
     name: spring-data-jpa
 
+
   datasource:
     url: jdbc:h2:tcp://localhost/~/datajpa
     username: sa
@@ -14,6 +15,12 @@ spring:
     properties:
       hibernate:
         format_sql: true
+
+  data:
+    web:
+      pageable:
+        default-page-size: 10
+        max-page-size: 2000
 
 logging:
   level:
