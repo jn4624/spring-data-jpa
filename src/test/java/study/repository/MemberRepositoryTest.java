@@ -500,4 +500,23 @@ public class MemberRepositoryTest {
 //        assertThat(resultDto.size()).isEqualTo(1);
         assertThat(resultNestedClosedProjection.size()).isEqualTo(1);
     }
+
+    @Test
+    void nativeQuery() {
+        // given
+        Team teamA = new Team("teamA");
+        entityManager.persist(teamA);
+
+        Member m1 = new Member("m1", 0, teamA);
+        Member m2 = new Member("m2", 0, teamA);
+        entityManager.persist(m1);
+        entityManager.persist(m2);
+
+        entityManager.flush();
+        entityManager.clear();
+
+        // when
+        Member result = memberRepository.findByNativeQuery("m1");
+        System.out.println("result = " + result);
+    }
 }
