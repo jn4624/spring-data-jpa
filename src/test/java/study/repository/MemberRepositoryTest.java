@@ -14,6 +14,9 @@ import org.springframework.transaction.annotation.Transactional;
 import study.dto.MemberDTO;
 import study.entity.Member;
 import study.entity.Team;
+import study.repository.projection.NestedClosedProjection;
+import study.repository.projection.UsernameOnly;
+import study.repository.projection.UsernameOnlyDTO;
 import study.repository.specification.MemberSpec;
 
 import java.util.Arrays;
@@ -456,5 +459,45 @@ public class MemberRepositoryTest {
 
         // then
         assertThat(result.size()).isEqualTo(1);
+    }
+
+    @Test
+    void projections() {
+        // given
+        Team teamA = new Team("teamA");
+        entityManager.persist(teamA);
+
+        Member m1 = new Member("m1", 0, teamA);
+        Member m2 = new Member("m2", 0, teamA);
+        entityManager.persist(m1);
+        entityManager.persist(m2);
+
+        entityManager.flush();
+        entityManager.clear();
+
+        // when
+//        List<UsernameOnly> result = memberRepository.findProjectionsByUsername("m1", UsernameOnly.class);
+//        for (UsernameOnly usernameOnly : result) {
+//            System.out.println("usernameOnly = " + usernameOnly);
+//            System.out.println("usernameOnly.getUsername = " + usernameOnly.getUsername());
+//        }
+
+//        List<UsernameOnlyDTO> resultDto = memberRepository.findProjectionsByUsername("m1", UsernameOnlyDTO.class);
+//        for (UsernameOnlyDTO dto : resultDto) {
+//            System.out.println("dto = " + dto);
+//            System.out.println("dto.getUsername = " + dto.getUsername());
+//        }
+
+        List<NestedClosedProjection> resultNestedClosedProjection = memberRepository.findProjectionsByUsername("m1", NestedClosedProjection.class);
+        for (NestedClosedProjection nestedClosedProjection : resultNestedClosedProjection) {
+            System.out.println("nestedClosedProjection = " + nestedClosedProjection);
+            System.out.println("nestedClosedProjection.getUsername = " + nestedClosedProjection.getUsername());
+            System.out.println("nestedClosedProjection..getTeam.getName = " + nestedClosedProjection.getTeam().getName());
+        }
+
+        // then
+//        assertThat(result.size()).isEqualTo(1);
+//        assertThat(resultDto.size()).isEqualTo(1);
+        assertThat(resultNestedClosedProjection.size()).isEqualTo(1);
     }
 }
